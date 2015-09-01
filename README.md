@@ -33,4 +33,19 @@ neural_net.fit(time_series, lag = 40, epochs = 10000)
 neural_net.predict_ahead(n_ahead = 30)
 ````
 
+Did we get it right? Let's check
+
+````python
+import matplotlib as plt
+plt.plot(range(len(neural_net.timeseries)), timeseries, '-r', label='Predictions', linewidth=1)
+plt.plot(range(len(time_series)), time_series, '-g',  label='Original series')
+plt.title("Box & Jenkins AirPassenger data")
+plt.xlabel("Observation ordered index")
+plt.ylabel("No. of passengers")
+plt.legend()
+plt.show()
+````
+
+![Example_png](example.png)
+
 

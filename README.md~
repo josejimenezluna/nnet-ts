@@ -15,8 +15,7 @@ sudo pip install nnet-ts
 Using Box & Jenkins classical air passenger data.
 
 ````python
-import numpy as np
-import pandas as pd
+from nnet_ts import *
 
 time_series = np.array(pd.read_csv("AirPassengers.csv")["x"])
 ````
@@ -32,6 +31,19 @@ Then just fit the data and predict values:
 ````python
 neural_net.fit(time_series, lag = 40, epochs = 10000)
 neural_net.predict_ahead(n_ahead = 30)
+````
+
+Did we get it right? Let's check
+
+````python
+import matplotlib as plt
+plt.plot(range(len(neural_net.timeseries)), timeseries, '-r', label='Predictions', linewidth=1)
+plt.plot(range(len(time_series)), time_series, '-g',  label='Original series')
+plt.title("Box & Jenkins AirPassenger data")
+plt.xlabel("Observation ordered index")
+plt.ylabel("No. of passengers")
+plt.legend()
+plt.show()
 ````
 
 
