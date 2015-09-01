@@ -25,7 +25,13 @@ Create a `TimeSeriesNnet` object and specify each layer size and activation func
 
 ````python
 neural_net = TimeSeriesNnet(hidden_layers = [20, 15, 5], activation_functions = ['sigmoid', 'sigmoid', 'sigmoid'])
+````
 
+Then just fit the data and predict values:
+
+````python
+neural_net.fit(time_series, lag = 40, epochs = 10000)
+neural_net.predict_ahead(n_ahead = 30)
 ````
 
 
