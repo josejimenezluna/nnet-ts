@@ -4,7 +4,7 @@ from distutils.core import setup
 setup(
   name = 'nnet-ts',
   packages = ['nnet_ts'], # this must be the same as the name above
-  version = '0.4',
+  version = '0.5',
   description = 'Neural network architecture for time series forecasting.',
   author = 'José Jiménez',
   author_email = 'jose@jimenezluna.com',

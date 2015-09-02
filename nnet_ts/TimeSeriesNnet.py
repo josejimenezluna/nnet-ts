@@ -14,10 +14,10 @@ class TimeSeriesNnet(object):
 			raise Exception("hidden_layers size must match activation_functions size")
 
 	def fit(self, timeseries, lag, epochs):
-		self.timeseries = np.array(timeseries) # Apply log transformation por variance stationarity
+		self.timeseries = np.array(timeseries, dtype = "float64") # Apply log transformation por variance stationarity
 		self.lag = lag		
 		self.n = len(timeseries)
-		self.X = np.zeros((self.n - self.lag, self.lag))
+		self.X = np.zeros((self.n - self.lag, self.lag), dtype = "float64")
 		self.y = np.log(self.timeseries[self.lag:]) 
 		self.epochs = epochs
 		self.scaler = StandardScaler()
