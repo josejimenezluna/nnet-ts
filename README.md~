@@ -46,4 +46,6 @@ plt.legend()
 plt.show()
 ````
 
+![Example_png](example.png)
+
 

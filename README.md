@@ -36,8 +36,8 @@ neural_net.predict_ahead(n_ahead = 30)
 Did we get it right? Let's check
 
 ````python
-import matplotlib as plt
-plt.plot(range(len(neural_net.timeseries)), timeseries, '-r', label='Predictions', linewidth=1)
+import matplotlib.pyplot as plt
+plt.plot(range(len(neural_net.timeseries)), neural_net.timeseries, '-r', label='Predictions', linewidth=1)
 plt.plot(range(len(time_series)), time_series, '-g',  label='Original series')
 plt.title("Box & Jenkins AirPassenger data")
 plt.xlabel("Observation ordered index")
