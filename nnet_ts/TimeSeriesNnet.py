@@ -6,21 +6,25 @@ from sklearn.preprocessing import StandardScaler
 
 
 class TimeSeriesNnet(object):
-	def __init__(self, hidden_layers, activation_functions):
+	def __init__(self, hidden_layers = [20, 15, 5], activation_functions = ['sigmoid', 'sigmoid', 'sigmoid']):
 		self.hidden_layers = hidden_layers
 		self.activation_functions = activation_functions
 
 		if len(self.hidden_layers) != len(self.activation_functions):
 			raise Exception("hidden_layers size must match activation_functions size")
 
-	def fit(self, timeseries, lag, epochs):
+	def fit(self, timeseries, lag = 7, epochs = 10000, verbose = 0, optimizer = 'sgd'):
 		self.timeseries = np.array(timeseries, dtype = "float64") # Apply log transformation por variance stationarity
-		self.lag = lag		
+		self.lag = lag
 		self.n = len(timeseries)
+		if self.lag >= self.n:
+			raise ValueError("Lag is higher than length of the timeseries")
 		self.X = np.zeros((self.n - self.lag, self.lag), dtype = "float64")
-		self.y = np.log(self.timeseries[self.lag:]) 
+		self.y = np.log(self.timeseries[self.lag:])
 		self.epochs = epochs
 		self.scaler = StandardScaler()
+		self.verbose = verbose
+		self.optimizer = optimizer
 
 		print "Building regressor matrix"
 		# Building X matrix
@@ -43,11 +47,11 @@ class TimeSeriesNnet(object):
 
 		# Add final node
 		self.nn.add(Dense(self.hidden_layers[-1], 1))
-		self.nn.compile(loss = 'mean_absolute_error', optimizer = 'sgd')
+		self.nn.compile(loss = 'mean_absolute_error', optimizer = self.optimizer)
 
 		print "Training neural net"
 		# Train neural net
-		self.nn.fit(self.X, self.y, nb_epoch = self.epochs)
+		self.nn.fit(self.X, self.y, nb_epoch = self.epochs, verbose = self.verbose)
 
 	def predict(self):
 		# Doing weird stuff to scale *only* the first value
@@ -57,11 +61,11 @@ class TimeSeriesNnet(object):
 		self.valid_x = self.next_X[0, 0]
 		# Doing it right now
 		self.next_X = np.concatenate((np.array([self.valid_x]), self.X[-1, :-1]), axis = 0)
-		self.next_X = self.next_X.reshape((1, self.lag))		 
+		self.next_X = self.next_X.reshape((1, self.lag))
 		self.next_y = self.nn.predict(self.next_X)
 		return np.exp(self.next_y)
 
-	def predict_ahead(self, n_ahead):
+	def predict_ahead(self, n_ahead = 1):
 		# Store predictions and predict iteratively
 		self.predictions = np.zeros(n_ahead)
 
@@ -74,4 +78,3 @@ class TimeSeriesNnet(object):
 			self.timeseries = np.concatenate((self.timeseries, np.exp(self.next_pred[0,:])), axis = 0)
 
 		return self.predictions
-
