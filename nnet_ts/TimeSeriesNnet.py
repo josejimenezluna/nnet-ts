@@ -1,19 +1,23 @@
 import numpy as np
 from keras.models import Sequential
-from keras.layers.core import Dense, Activation, Dropout
+from keras.layers.core import Dense, Activation
+from keras.optimizers import SGD
 from sklearn.preprocessing import StandardScaler
 
 
 
 class TimeSeriesNnet(object):
-	def __init__(self, hidden_layers = [20, 15, 5], activation_functions = ['sigmoid', 'sigmoid', 'sigmoid']):
+	def __init__(self, hidden_layers = [20, 15, 5], activation_functions = ['relu', 'relu', 'relu'], 
+              optimizer = SGD(), loss = 'mean_absolute_error'):
 		self.hidden_layers = hidden_layers
 		self.activation_functions = activation_functions
+		self.optimizer = optimizer
+		self.loss = loss
 
 		if len(self.hidden_layers) != len(self.activation_functions):
 			raise Exception("hidden_layers size must match activation_functions size")
 
-	def fit(self, timeseries, lag = 7, epochs = 10000, verbose = 0, optimizer = 'sgd'):
+	def fit(self, timeseries, lag = 7, epochs = 10000, verbose = 0):
 		self.timeseries = np.array(timeseries, dtype = "float64") # Apply log transformation por variance stationarity
 		self.lag = lag
 		self.n = len(timeseries)
@@ -24,7 +28,6 @@ class TimeSeriesNnet(object):
 		self.epochs = epochs
 		self.scaler = StandardScaler()
 		self.verbose = verbose
-		self.optimizer = optimizer
 
 		print "Building regressor matrix"
 		# Building X matrix
@@ -38,32 +41,21 @@ class TimeSeriesNnet(object):
 		print "Checking network consistency"
 		# Neural net architecture
 		self.nn = Sequential()
-		self.nn.add(Dense(self.X.shape[1], self.hidden_layers[0]))
+		self.nn.add(Dense(self.hidden_layers[0], input_shape = (self.X.shape[1],)))
 		self.nn.add(Activation(self.activation_functions[0]))
 
-		for i, layer in enumerate(self.hidden_layers[:-1]):
-			self.nn.add(Dense(self.hidden_layers[i], self.hidden_layers[i + 1]))
-			self.nn.add(Activation(self.activation_functions[i]))
+		for layer_size, activation_function in zip(self.hidden_layers[1:],self.activation_functions[1:]):
+			self.nn.add(Dense(layer_size))
+			self.nn.add(Activation(activation_function))
 
 		# Add final node
-		self.nn.add(Dense(self.hidden_layers[-1], 1))
-		self.nn.compile(loss = 'mean_absolute_error', optimizer = self.optimizer)
+		self.nn.add(Dense(1))
+		self.nn.add(Activation('linear'))
+		self.nn.compile(loss = self.loss, optimizer = self.optimizer)
 
 		print "Training neural net"
 		# Train neural net
 		self.nn.fit(self.X, self.y, nb_epoch = self.epochs, verbose = self.verbose)
-
-	def predict(self):
-		# Doing weird stuff to scale *only* the first value
-		self.next_X = np.concatenate((np.array([self.y[-1]]), self.X[-1, :-1]), axis = 0)
-		self.next_X = self.next_X.reshape((1, self.lag))
-		self.next_X = self.scaler.transform(self.next_X)
-		self.valid_x = self.next_X[0, 0]
-		# Doing it right now
-		self.next_X = np.concatenate((np.array([self.valid_x]), self.X[-1, :-1]), axis = 0)
-		self.next_X = self.next_X.reshape((1, self.lag))
-		self.next_y = self.nn.predict(self.next_X)
-		return np.exp(self.next_y)
 
 	def predict_ahead(self, n_ahead = 1):
 		# Store predictions and predict iteratively
