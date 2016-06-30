@@ -3,7 +3,9 @@ from keras.models import Sequential
 from keras.layers.core import Dense, Activation
 from keras.optimizers import SGD
 from sklearn.preprocessing import StandardScaler
+import logging
 
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
 class TimeSeriesNnet(object):
@@ -29,16 +31,16 @@ class TimeSeriesNnet(object):
 		self.scaler = StandardScaler()
 		self.verbose = verbose
 
-		print "Building regressor matrix"
+		logging.info("Building regressor matrix")
 		# Building X matrix
 		for i in range(0, self.n - lag):
 			self.X[i, :] = self.timeseries[range(i, i + lag)]
 
-		print "Scaling data"
+		logging.info("Scaling data")
 		self.scaler.fit(self.X)
 		self.X = self.scaler.transform(self.X)
 
-		print "Checking network consistency"
+		logging.info("Checking network consistency")
 		# Neural net architecture
 		self.nn = Sequential()
 		self.nn.add(Dense(self.hidden_layers[0], input_shape = (self.X.shape[1],)))
@@ -53,7 +55,7 @@ class TimeSeriesNnet(object):
 		self.nn.add(Activation('linear'))
 		self.nn.compile(loss = self.loss, optimizer = self.optimizer)
 
-		print "Training neural net"
+		logging.info("Training neural net")
 		# Train neural net
 		self.nn.fit(self.X, self.y, nb_epoch = self.epochs, verbose = self.verbose)
 
